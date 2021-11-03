@@ -6,7 +6,6 @@ from sys import exit
 
 # Client Server Chat
 
-x = 1
 
 
 def connect(host: str, port: int, client: str):
