@@ -6,7 +6,7 @@ import socket
 from ui import *
 
 
-def connect(host: str, port: int, client: str):
+def connect(host: str, port: int, is_client: bool):
     """
         Faz uma conexão a um IP/Porta remota
 
@@ -15,7 +15,8 @@ def connect(host: str, port: int, client: str):
     """
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if client == "1":
+    if is_client:
+        print(host, port)
         s.connect((host, port))
     else:
         # TODO: Criar servidor separado que remete as mensagens para o destino, este codigo irá desaparecer

@@ -4,6 +4,7 @@ import sys
 import os
 import argparse
 import threading
+import re
 
 # Custom modules
 sys.path.append("./libs/")
@@ -11,32 +12,60 @@ from connections import *
 
 # Client Server Chat
 
+def main(username: str, host: str, port: int, is_client: bool):
 
-def main(args):
-    # Global Variables
-    msg_history = []
-    username = args.username
+    msg_history = []         # Used to render the messages to the screen
 
-    conn = connect(args.host, args.port, args.client)
+    socket_connection = connect(host, port, is_client)
     print(username+": ", end="", flush=True)
 
-    # Thread sempre para ouvir // Enviar msg para ip
+    # Listening for oncomming messages.
     message_listener_thread = threading.Thread(
-        target=message_listener, args=(conn, msg_history, username))
+        target=message_listener, args=(socket_connection, msg_history, username))
     message_listener_thread.daemon = True
     message_listener_thread.start()
 
     while True:
         try:
-            # Depois nao vai ser preciso enviar username, isto é so um workaround, o servidor tratará disto i think, ou depende do chat escolhido
-            send_msg(conn, username, msg_history)
-        except Exception as e:
+            # TODO: Depois nao vai ser preciso enviar username, isto é so um workaround, o servidor tratará disto i think, ou depende do chat escolhido
+            send_msg(socket_connection, username, msg_history)
+        except KeyboardInterrupt:
+            print("Exiting chat...")
+            sys.exit(0)
+        except Exception as error:
             if(args.debug == 1):
                 print(msg_history)
                 print("Username escolhido foi: " + args.username)
-                if e:
-                    print(e)
-            sys.exit(0)
+                if error:
+                    print(error)
+            sys.exit(1)
+
+
+def validate_args(args):
+    # Input validation
+    error_flag = False
+
+    # Ip address validation
+    if not bool(re.match("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", args.host)):
+        print("Invalid IP address.")
+        error_flag = True
+
+    # Port validation
+    if not bool(re.match("^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$", args.port)):
+        print("Invalid Port Range.")
+        error_flag = True
+
+    if args.client not in ["0", "1"]:
+        print("--client option must be either 0 or 1.")
+        error_flag = True
+
+    if error_flag:
+        sys.exit(1)
+
+    args.port = int(args.port)
+    is_client = True if args.client == "1" else False
+
+    return args.username, args.host, args.port, is_client
 
 
 if __name__ == "__main__":
@@ -52,6 +81,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--debug", help="1 to debug")
     args = parser.parse_args()
-    args.port = int(args.port)
 
-    main(args)
+    args = validate_args(args)
+
+    main(*args)
