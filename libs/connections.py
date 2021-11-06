@@ -1,6 +1,7 @@
-"""Socket connection handles
+"""
+Socket connection handler
 
-This module handles the various client functions to communicate and receive messages with a server
+- This module handles the various client functions to communicate and receive messages with a server
 """
 import socket
 from ui import *
@@ -14,23 +15,32 @@ def connect(host: str, port: int, is_client: bool):
         @port <- port Remoto
     """
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    remote_ip = ""
     if is_client:
         print(host, port)
-        s.connect((host, port))
+        socket_connection.connect((host, port))
     else:
         # TODO: Criar servidor separado que remete as mensagens para o destino, este codigo irá desaparecer
-        s.bind((host, port))
-        s.listen(5)
+        socket_connection.bind((host, port))
+        socket_connection.listen(5)
         print("Á espera de conexão")
-        s, ender = s.accept()
-        print("Conexão estabelecida: ", ender)
+        socket_connection, remote_ip = socket_connection.accept()
         # TODO: No lado do servidor, fazer verificação se uma conexão morrer e tomar os passos adequados
-    return s
+
+    clear_terminal()
+    print("Conexão estabelecida: ", remote_ip)
+    return socket_connection
 
 
 def message_listener(connection, msg_history: list, username: str):
-    # TODO: deve de haver melhor forma de ver se uma mensagem foi recebida
+    """
+        Listens and receives data from connection
+
+        @connection <- socket_connection with server
+        @msg_history <- used for re-rendering the screen
+        @username <- used for re-rendering the screen
+    """
     while True:
         BUFF_SIZE = 1024
         data = b""
@@ -48,14 +58,20 @@ def message_listener(connection, msg_history: list, username: str):
             msg_history.append(data.decode())
             # Printing everything
             render_screen(msg_history, username)
-
-            #print(data.decode() + "\ngui: ", flush=True)
+            # TODO: find way to use msg_history and username globally to avoid ambiguous parameters and parameter tunnels
 
 
 def send_msg(connection, username: str, msg_history: list):
-    #msg = input(username + ": ")
-    msg = input()
-    msg = username + ": " + msg
+    """
+        Crafts and sends message to server
+
+        @connection <- socket_connection with server
+        @msg_history <- used for re-rendering the screen
+        @username <- used for re-rendering the screen
+    """
+
+    msg = username + ": " + input()
     msg_history.append(msg)
     connection.send(str.encode(msg))
+
     render_screen(msg_history, username)

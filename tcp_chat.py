@@ -1,7 +1,7 @@
 
+# Client Server Chat
 
 import sys
-import os
 import argparse
 import threading
 import re
@@ -10,10 +10,8 @@ import re
 sys.path.append("./libs/")
 from connections import *
 
-# Client Server Chat
 
 def main(username: str, host: str, port: int, is_client: bool):
-
     msg_history = []         # Used to render the messages to the screen
 
     socket_connection = connect(host, port, is_client)
@@ -27,7 +25,7 @@ def main(username: str, host: str, port: int, is_client: bool):
 
     while True:
         try:
-            # TODO: Depois nao vai ser preciso enviar username, isto é so um workaround, o servidor tratará disto i think, ou depende do chat escolhido
+            # TODO: Depois nao vai ser preciso enviar username, isto é so um workaround, o servidor tratará disto dependendo do IP de quem manda a msg, ou depende do chat escolhido
             send_msg(socket_connection, username, msg_history)
         except KeyboardInterrupt:
             print("Exiting chat...")
@@ -35,9 +33,7 @@ def main(username: str, host: str, port: int, is_client: bool):
         except Exception as error:
             if(args.debug == 1):
                 print(msg_history)
-                print("Username escolhido foi: " + args.username)
-                if error:
-                    print(error)
+                print(error)
             sys.exit(1)
 
 
