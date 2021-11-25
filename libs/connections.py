@@ -6,6 +6,16 @@ Socket connection handler
 import socket
 from ui import *
 
+def append_msg_history(msg: str, msg_history: list):
+    """
+        Adiciona uma mensagem ao histórico de mensagens com um limite default = 150
+
+        @msg <- Mensagem a adicionar no historico
+        @msg_history <- Pointer para o historico de mensages
+    """
+    if(len(msg_history) >= 150):
+        msg_history.pop()
+    msg_history.append(msg)
 
 def connect(host: str, port: int, is_client: bool):
     """
@@ -55,7 +65,7 @@ def message_listener(connection, msg_history: list, username: str):
 
         if data != b"":
             # Adding to history
-            msg_history.append(data.decode())
+            append_msg_history(data.decode(), msg_history)
             # Printing everything
             render_screen(msg_history, username)
             # TODO: find way to use msg_history and username globally to avoid ambiguous parameters and parameter tunnels
@@ -71,7 +81,7 @@ def send_msg(connection, username: str, msg_history: list):
     """
 
     msg = username + ": " + input()
-    msg_history.append(msg)
+    append_msg_history(msg, msg_history)
     connection.send(str.encode(msg))
 
     render_screen(msg_history, username)
